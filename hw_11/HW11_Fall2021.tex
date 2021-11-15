@@ -1,0 +1,129 @@
+\documentclass[11pt]{article}
+%\parskip 1.0\parskip plus 3pt minus 1pt
+\renewcommand{\baselinestretch}{1.5}
+
+\setlength{\oddsidemargin}{-0.1in}
+\setlength{\evensidemargin}{-0.1in} 
+\setlength{\textwidth}{6.54in}
+\setlength{\topmargin}{0in} 
+\setlength{\textheight}{8.5in}
+%\setlength{\oddsidemargin}{0in}
+%\setlength{\evensidemargin}{0.15in} 
+%\setlength{\textwidth}{6.2in}
+%\setlength{\topmargin}{-0.3in} 
+%\setlength{\textheight}{8.9in}
+
+\linespread{1}
+
+\usepackage{makeidx}
+\usepackage{amsmath,amssymb, amsthm}
+\usepackage{latexsym,remreset}
+\usepackage[toc,page]{appendix}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{bbm}
+\usepackage{color}
+%\usepackage[pdftex]{graphicx} 
+
+\usepackage{url}
+%% Define a new 'leo' style for the package that will use a smaller font.
+\makeatletter
+\def\url@leostyle{%
+  \@ifundefined{selectfont}{\def\UrlFont{\sf}}{\def\UrlFont{\small\ttfamily}}}
+\makeatother
+%% Now actually use the newly defined style.
+\urlstyle{leo}
+
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+\newtheorem{theorem}{Theorem}
+\newcommand{\mb}[1]{\ensuremath{\boldsymbol{#1}}}
+\newcommand{\vol}{{\sf volume}}
+\newcommand{\Stochb}{$\Pi_{\mathrm {Stoch}}(b)$}
+\newcommand{\tf}{\text{translation factor}}
+
+
+\title{ISyE6669 Deterministic Optimization\\ Homework 11}
+
+\author{Fall 2021}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Problem 1: Dantzig-Wolfe decomposition}
+
+Consider the following linear programming problem:
+\begin{eqnarray*}
+\begin{array}{ccccccccc}
+\max 		& 	 	   & x_{12}   &               &  			& + x_{22} & + x_{23}  &    & \\
+\text{s.t.}  & x_{11} &              &               &               &               & + x_{23} & \leq & 12 \\
+			& x_{11} & +x_{12} & + x_{13} &  			&               &               & = & 20 \\
+			&            &             &               & x_{21}     & + x_{22} & + x_{23} & = & 20  \\
+                & x_{11} &             &               & +x_{21}     &              &                & = & 10 \\
+                &            & x_{12}  &              &                & +x_{22}   &               & = & 20 \\
+                &            &            & x_{13}   &                &               & +x_{23}   & = & 10  \\               
+\end{array}\\
+x_{ij}\geq 0, \quad\text{for all $i=1,2, j=1,2,3$.}
+\end{eqnarray*}
+
+
+
+We will solve this problem using the Dantzig-Wolfe decomposition. Consider the first constraint $x_{11}+x_{23}\leq 12$ as the ``complicating'' constraint (i.e. the $\mb{Dx}\leq\mb{b}$ constraint) and consider the remaining constraints including nonnegativity constraints as the ``easy'' constraints, which define a polyhedron $P$. That is, $P$ is defined by the above five equality constraints and the nonnegativity constraints.
+
+In the following, we will guide you through a few steps to solve the problem. These steps will help you review some important topics such as reduced costs, the simplex method, LP duality (including complementary slackness), and column generation. 
+
+\begin{enumerate}
+\item First, argue that the polyhedron $P$ defined above is bounded.
+
+\item Since $P$ is bounded, we can use the extreme point representation for $P$. The Dantzig-Wolfe master problem can be written as:
+\begin{align*}
+\max \quad & \sum_{j=1}^N \lambda_i \left(\mb{c}^T\mb{x}^i\right) \\
+\text{s.t.}\quad & \sum_{j=1}^N \lambda_i \left(\mb{D}\mb{x}^i\right) \leq \mb{b} \\
+                       & \sum_{j=1}^N \lambda_i = 1, \\
+                       & \lambda_i \geq 0, \quad\forall i = 1, \dots, N.
+\end{align*}
+Specify $\mb{c}$, $\mb{D}$, and $\mb{b}$ for this problem. Note that each extreme points $\mb{x}^i$ of the polyhedron $P$ has 6 components, i.e. $\mb{x}^i = (x_{11},x_{12},x_{13},x_{21},x_{22},x_{23})$. 
+\item You are given the following two extreme points of the polyhedron $P$: 
+\begin{align*}
+\mb{x}^1 = (x_{11},x_{12},x_{13},x_{21},x_{22},x_{23}) = (10,10,0,0,10,10),
+\end{align*}
+and 
+\begin{align*}
+\mb{x}^2 = (x_{11},x_{12},x_{13},x_{21},x_{22},x_{23}) = (0,10,10,10,10,0).
+\end{align*}
+Construct the restricted master problem using these two extreme points. Use variables $\lambda_1$ and $\lambda_2$ for the restricted master problem.
+
+\item Find the optimal solution of the restricted master problem, which can be solved by hand.
+
+\item Find the optimal dual variables in \textit{two ways}. First, find the basis matrix for the optimal solution of the restricted master problem and compute the dual variables $\hat{\mb{y}}$ using $\hat{\mb{y}}^T=\mb{c}_B^T\mb{B}^{-1}$. The second way: Form the dual problem of the restricted master problem, and compute the optimal dual variables using Complementary Slackness (Hint: similar to what you did in the last homework.) The two ways should give the same answer.
+
+\item Using the dual variables computed in the previous part, formulate the subproblem that maximizes the reduced cost of the restricted master problem. If the maximum reduced cost is $Z$, when should we terminate the Dantzig-Wolfe decomposition algorithm? 
+
+%\item 
+
+%\item Write a short Xpress code to solve the subproblem. Attach the mos file (you are allowed to put the data in the mos file.) What is the maximum reduced cost? Should we terminate the Dantzig-Wolfe decomposition algorithm at this point? 
+
+\item The polytope $P$ has an interesting interpretation. Think about $x_{ij}$ as the amount of product shipped from warehouse $i$ to city $j$. Use this to interpret the five equality constraints as flow conservation constraints. This problem is about scheduling shipment across a network of warehouses and cities.
+%Can you give an interpretation to the constraint set $P$? What does it represent? Hint: $P$ has an interesting interpretation in as a network flow problem. 
+\end{enumerate}
+
+\section*{Problem 2: Image compression and SVD}
+Singular Value Decomposition (SVD) is a very useful tool in data analysis. In this exercise, you will use SVD to compress image. Implement the following steps in Matlab.
+\begin{enumerate}
+	\item Load the clown image. You can use the following command \textsf{load clown.mat}. Look at what are loaded in the workspace.
+	\item Do an SVD decomposition on the $X$ matrix. 
+	\item Find the rank $k$ approximation of $X$, for $k=5, 15, 25$. Denote the rank $k$ approximation of $X$ as $X_k$.
+	\item Generate the image for $X_k$ using the command \textsf{image($X_k$)}.
+\end{enumerate}
+
+If you are using Python, you can use the \texttt{numpy} and \texttt{matplotlib} packages. For example, you can use \verb|X = np.loadtxt("clownImage.txt")| to load the matrix of the clown image, and use \verb|plt.gray()|, \verb|plt.imshow(X)|, and \verb|plt.show()| to display the image from the matrix \texttt{X}. Besides, the package \texttt{numpy} also provides a quick command to do the SVD decomposition of a matrix.
+
+You should submit your code (Matlab or python) and the images.
+
+\end{document}
